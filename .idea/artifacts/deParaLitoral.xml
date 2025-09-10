@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="deParaLitoral">
+    <output-path>$PROJECT_DIR$/out/artifacts/deParaLitoral</output-path>
+    <root id="archive" name="deParaLitoral.jar">
+      <element id="module-output" name="depara_litoral" />
+    </root>
+  </artifact>
+</component>
