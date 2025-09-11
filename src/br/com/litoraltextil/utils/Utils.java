@@ -1,7 +1,6 @@
 package br.com.litoraltextil.utils;
 
-import br.com.litoraltextil.dao.CabecalhoDAO;
-import br.com.litoraltextil.dao.ParceiroDAO;
+import br.com.litoraltextil.dao.*;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.vo.DynamicVO;
@@ -16,20 +15,18 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 public class Utils {
-
     public static void AlteraProdutoPedido(DynamicVO logDePara, BigDecimal codusu) throws Exception {
         JdbcWrapper jdbc = EntityFacadeFactory.getDWFFacade().getJdbcWrapper();
         try {
-            BigDecimal id = logDePara.asBigDecimal("ID");
             BigDecimal codprodant = logDePara.asBigDecimal("CODPRODANT");
             BigDecimal codprodins = logDePara.asBigDecimal("CODPRODINS");
             BigDecimal codproj = logDePara.asBigDecimal("CODPROJ");
-            String corAnterior = logDePara.asString("CODCORANT");
-            String corInserida = logDePara.asString("CODCORINS");
-            String nomeProduto = logDePara.asString("PRODUTOANT");
-            Timestamp dataAlteracao = logDePara.asTimestamp("DTALTER");
+//            String corAnterior = logDePara.asString("CODCORANT");
+//            String corInserida = logDePara.asString("CODCORINS");
+//            String nomeProduto = logDePara.asString("PRODUTOANT");
+//            Timestamp dataAlteracao = logDePara.asTimestamp("DTALTER");
             NativeSql sql = new NativeSql(jdbc);
-            sql.appendSql("SELECT NUNOTA , SEQUENCIA FROM TGFITE WHERE  CODPROD = :CODPROD AND CONTROLE = :CONTROLE");
+            sql.appendSql("SELECT ITE.NUNOTA , ITE.SEQUENCIA FROM TGFITE ITE WHERE CODPROD = :CODPROD AND CONTROLE = :CONTROLE AND CODLOCALORIG = 1002 AND NOT EXISTS (SELECT 1 FROM TGFVAR WHERE NUNOTAORIG = ITE.NUNOTA)");
             sql.setNamedParameter("CODPROD", codprodant);
             sql.setNamedParameter("CONTROLE",codproj.toString());
             ResultSet rs = sql.executeQuery();
@@ -45,17 +42,13 @@ public class Utils {
                 JapeWrapper logDeParaPedidoVenda = JapeFactory.dao("AD_DEPARAPEDVEN");
                 logDeParaPedidoVenda.create()
                         .set("NUNOTA", nunota)
-                        .set("SEQITE", sequencia)
                         .set("CODPRODANT", codprodant)
                         .set("CODPRODINS", codprodins)
-                        .set("CODPROJ", codproj)
+                        .set("CODPROJ", codproj.toString())
+                        .set("SEQITE", sequencia)
                         .set("DTALTER", new Timestamp(System.currentTimeMillis()))
                         .set("CODUSU", codusu)
                         .save();
-
-                if (logDePara.asString("NOTIFICAPARC").compareTo("S") == 0) {
-                    NotificaParceiro(nunota,corAnterior,corInserida,nomeProduto,dataAlteracao);
-                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,7 +57,7 @@ public class Utils {
         }
     }
 
-    public static void NotificaParceiro(BigDecimal nunota , String corAnt , String corIns , String prodAnt , Timestamp dtAlter) throws Exception {
+    public static void NotificarVendedor(BigDecimal nunota , String corAnt , String corIns , String prodAnt , Timestamp dtAlter) throws Exception {
         try {
             System.out.println("Iniciando notificação ao parceiro...");
 
@@ -111,6 +104,46 @@ public class Utils {
             e.printStackTrace();
             throw new Exception("Erro ao notificar o parceiro: " + e.getMessage());
         }
+    }
+
+    public static String validarOperacao( BigDecimal nunota,BigDecimal sequencia, BigDecimal codProdAtual, BigDecimal codProdNovo, BigDecimal codProj) throws Exception {
+
+        DynamicVO etiquetasVO = TabelasAD.CtrMtsDAO(nunota, codProdAtual);
+        if (etiquetasVO != null) {
+            return "Já existe etiqueta emitida pra esse número único/produto. Favor entrar em contato com o setor de expedição.";
+        }
+
+        DynamicVO itemNotaVO = ItemNotaDAO.get(nunota, sequencia);
+        DynamicVO sortProdVO = TabelasAD.sortProdDAO(codProj, codProdNovo);
+        if (itemNotaVO != null || sortProdVO != null) {
+            return "O produto substituto já está no pedido de compra e/ou no sortimento do projeto.";
+        }
+
+        String ultimosQuatroDigitosProdNovo = codProdNovo.toString().substring(codProdNovo.toString().length() - 4);
+        if ("0000".equals(ultimosQuatroDigitosProdNovo)) {
+            return "Não é possível substituir o item por um produto PAI.";
+        }
+
+        String ultimosQuatroDigitosProdAtual = codProdAtual.toString().substring(codProdAtual.toString().length() - 4);
+        if (!ultimosQuatroDigitosProdAtual.equals(ultimosQuatroDigitosProdNovo)) {
+            return "Não é possivel alterar o item para um produto de um \"PAI\" diferente do projeto.";
+        }
+
+        DynamicVO produtoVO = ProdutoDAO.get(codProdNovo);
+        if (produtoVO.asString("AD_LD").equals("S")){
+            return "Não é possivel alterar o item para um produto LD.";
+        }
+
+        if (produtoVO.asString("ATIVO").equals("N")){
+            return "Não é possivel alterar o item para um produto <b>INATIVO</b>.";
+        }
+
+        DynamicVO deParaVO = TabelasAD.deParaDAO(codProdNovo);
+        if (deParaVO != null) {
+            return "Não é possivel alterar o item para um produto já usado no mesmo lote.";
+        }
+
+        return null;
     }
 
 }

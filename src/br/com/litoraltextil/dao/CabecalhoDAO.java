@@ -29,14 +29,12 @@ public class CabecalhoDAO {
 		return tgfCabVO;
 	}
 
-
 	public static DynamicVO getID() throws Exception {
 		JapeWrapper tgfnum = JapeFactory.dao("ControleNumeracao");
 		DynamicVO tgfnumVO = null;
 		tgfnumVO = tgfnum.findOne("ARQUIVO = ?", "AD_LOGTRANSFEMP");
 		return tgfnumVO;
 	}
-
 
 	public static boolean existeDevolucaoProducao(BigDecimal nuNota) throws Exception {
 		DynamicVO tgfCab = JapeFactory.dao("CabecalhoNota").findOne("NUNOTA = ? AND CODTIPOPER = 1220 AND STATUSNFE = 'A'",nuNota);

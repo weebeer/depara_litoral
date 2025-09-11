@@ -11,6 +11,7 @@ import br.com.sankhya.jape.wrapper.JapeWrapper;
 import br.com.sankhya.modelcore.auth.AuthenticationInfo;
 import br.com.sankhya.modelcore.util.DynamicEntityNames;
 import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import com.sankhya.util.ReinfUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -20,6 +21,7 @@ import static br.com.sankhya.jape.dao.JdbcWrapper.closeSession;
 
 public class trocaPedidos implements EventoProgramavelJava {
     public static final String LOG_PREFIX = "DE PARA [LITORAL] - Evento : trocaPedidos : ";
+
     @Override
     public void beforeInsert(PersistenceEvent persistenceEvent) throws Exception {
 
@@ -37,11 +39,12 @@ public class trocaPedidos implements EventoProgramavelJava {
 
     @Override
     public void afterInsert(PersistenceEvent event) throws Exception {
+//        throw new Exception(LOG_PREFIX + "Teste de exception no afterInsert");
+        System.out.println(LOG_PREFIX + "Iniciando afterInsert...");
         DynamicVO logDeParaVO = (DynamicVO) event.getVo();
         BigDecimal codUsu = AuthenticationInfo.getCurrent().getUserID();
         try {
             AlteraProdutoPedido(logDeParaVO , codUsu);
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(LOG_PREFIX + "Erro ao executar o afterInsert: " + e.getMessage());
@@ -49,7 +52,7 @@ public class trocaPedidos implements EventoProgramavelJava {
     }
 
     @Override
-    public void afterUpdate(PersistenceEvent persistenceEvent) throws Exception {
+    public void afterUpdate(PersistenceEvent event) throws Exception {
 
     }
 
