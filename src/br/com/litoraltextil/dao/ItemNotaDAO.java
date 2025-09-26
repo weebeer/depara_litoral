@@ -14,5 +14,11 @@ public class ItemNotaDAO {
 		tgfiteVO = tgfite.findByPK(nuNota,sequencia);
 		return tgfiteVO;
 	}
+	public static DynamicVO getIteValid(BigDecimal nuNota,BigDecimal codprod) throws Exception {
+		JapeWrapper tgfite = JapeFactory.dao("ItemNota");
+		DynamicVO tgfiteVO = null;
+		tgfiteVO = tgfite.findOne("NUNOTA = ? AND CODPROD = ?",nuNota,codprod);
+		return tgfiteVO;
+	}
 
 }

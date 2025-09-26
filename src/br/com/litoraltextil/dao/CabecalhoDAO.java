@@ -21,6 +21,12 @@ public class CabecalhoDAO {
 		tgfCabVO = tgfCab.findOne("IDINSTPRN = ?",instanciaPrincipal);
 		return tgfCabVO;
 	}
+	public static DynamicVO getOneProjeto(BigDecimal codproj) throws Exception {
+		JapeWrapper tgfCab = JapeFactory.dao("CabecalhoNota");
+		DynamicVO tgfCabVO = null;
+		tgfCabVO = tgfCab.findOne("CODTIPOPER IN (1460, 1457) AND CODPROJ = ? ",codproj);
+		return tgfCabVO;
+	}
 
 	public static DynamicVO getOneFlow(BigDecimal nuNota) throws Exception {
 		JapeWrapper tgfCab = JapeFactory.dao("AD_TGFCAB");

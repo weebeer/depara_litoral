@@ -16,7 +16,7 @@ public class ProdutoDAO {
 	}
 
 	public static DynamicVO getPantone(BigDecimal codcor) throws Exception {
-		JapeWrapper pantone = JapeFactory.dao("AD_PANTONE");
+		JapeWrapper pantone = JapeFactory.dao("PANTONE");
 		DynamicVO pantoneVO = null;
 		pantoneVO = pantone.findOne("CODCOR = ?", codcor);
 		return pantoneVO;

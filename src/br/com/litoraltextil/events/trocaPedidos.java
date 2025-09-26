@@ -39,19 +39,17 @@ public class trocaPedidos implements EventoProgramavelJava {
 
     @Override
     public void afterInsert(PersistenceEvent event) throws Exception {
-//        throw new Exception(LOG_PREFIX + "Teste de exception no afterInsert");
         System.out.println(LOG_PREFIX + "Iniciando afterInsert...");
         DynamicVO logDeParaVO = (DynamicVO) event.getVo();
-        BigDecimal codUsu = AuthenticationInfo.getCurrent().getUserID();
         try {
-            AlteraProdutoPedido(logDeParaVO , codUsu);
+            AlteraProdutoPedido(logDeParaVO);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(LOG_PREFIX + "Erro ao executar o afterInsert: " + e.getMessage());
         }
     }
 
-    @Override
+    @Override   
     public void afterUpdate(PersistenceEvent event) throws Exception {
 
     }
